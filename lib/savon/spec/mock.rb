@@ -40,6 +40,12 @@ module Savon
         self
       end
 
+      # Sets up Savon to respond like there was a SOAP fault.
+      def raises_soap_fault
+        Savon::SOAP::Response.any_instance.expects(:soap_fault?).returns(true)
+        self
+      end
+
     private
 
       def setup(mock_method, soap_action)

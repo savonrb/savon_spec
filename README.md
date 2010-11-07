@@ -39,6 +39,7 @@ By including the macros, you have access to the `savon` method in your specs. It
     #expects(soap_action)       # mocks SOAP request to a given SOAP action
     #stubs(soap_action)         # stubs SOAP requests to a given SOAP action
     #with(soap_body)            # expects Savon to send a given SOAP body
+    #raises_soap_fault          # raises or acts like there was a SOAP fault
     #returns(response)          # returns the given response
 
 ### Fixtures
@@ -61,10 +62,10 @@ When used inside a Rails 3 application, Savon::Spec uses the command `Rails.root
 
 The directories inside the fixture directory should map to SOAP actions and the XML fixtures inside those directories should describe the SOAP response. Please take a look at the following examples to better understand this convention.
 
-Some examples
--------------
+An example
+----------
 
-    # user.rb
+user.rb
 
     class User
 
@@ -83,7 +84,7 @@ Some examples
 
     end
 
-    # user_spec.rb
+user_spec.rb
 
     describe User do
 

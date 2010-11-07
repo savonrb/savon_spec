@@ -21,17 +21,13 @@ describe Savon::Spec::Mock do
       client.request :get_user
     end
 
-    context "without a request to mock" do
-      around do |example|
-        begin
-          example.run
-        rescue Mocha::ExpectationError => e
-          e.message.should include("expected exactly once, not yet invoked: HTTPI.post")
-        end
-      end
-
-      it "should fail" do
-      end
+    it "should fail when no SOAP call was made" do
+      expect { verify_mocks_for_rspec }.to raise_error(
+        Mocha::ExpectationError,
+        /expected exactly once, not yet invoked: HTTPI.post/
+      )
+      
+      teardown_mocks_for_rspec
     end
   end
 
@@ -44,18 +40,15 @@ describe Savon::Spec::Mock do
       end
     end
 
-    context "with a request without SOAP body" do
-      around do |example|
-        begin
-          example.run
-        rescue Mocha::ExpectationError => e
-          e.message.should include("expected exactly once, not yet invoked: #<AnyInstance:Savon::SOAP::XML>.body=(:id => 1)")
-        end
-      end
-
-      it "should fail" do
-        client.request :get_user
-      end
+    it "should fail when the SOAP body was not send" do
+      client.request(:get_user)
+      
+      expect { verify_mocks_for_rspec }.to raise_error(
+        Mocha::ExpectationError,
+        /expected exactly once, not yet invoked: #<AnyInstance:Savon::SOAP::XML>.body=\(:id => 1\)/
+      )
+      
+      teardown_mocks_for_rspec
     end
   end
 
@@ -67,7 +60,8 @@ describe Savon::Spec::Mock do
     end
 
     it "should not complain about requests not being executed" do
-      # no request
+      expect { verify_mocks_for_rspec }.to_not raise_error(Mocha::ExpectationError)
+      teardown_mocks_for_rspec
     end
   end
 
@@ -160,6 +154,23 @@ describe Savon::Spec::Mock do
       it "should return the given response body" do
         response.http.body.should == @hash[:body]
       end
+    end
+  end
+
+  describe "#with_soap_fault" do
+    before { savon.expects(:get_user).raises_soap_fault.returns }
+
+    it "should raise a SOAP fault" do
+      expect { client.request :get_user }.to raise_error(Savon::SOAP::Fault)
+    end
+
+    it "should just act like there was a SOAP fault if raising errors was disabled" do
+      Savon.raise_errors = false
+      
+      response = client.request :get_user
+      response.should be_a_soap_fault
+      
+      Savon.raise_errors = true  # reset to default
     end
   end
 
