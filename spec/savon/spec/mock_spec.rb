@@ -47,7 +47,20 @@ describe Savon::Spec::Mock do
         Mocha::ExpectationError,
         /expected exactly once, not yet invoked: #<AnyInstance:Savon::SOAP::XML>.body=\(:id => 1\)/
       )
-      
+
+      teardown_mocks_for_rspec
+    end
+  end
+
+  describe "#expects and #never" do
+    before { savon.expects(:noop).never }
+
+    it "should not expect Savon to send a given SOAP body" do
+      expect { client.request(:noop) }.to raise_error(
+        Mocha::ExpectationError,
+        /expected never, invoked once: HTTPI.post()/
+      )
+
       teardown_mocks_for_rspec
     end
   end

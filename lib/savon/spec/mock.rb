@@ -26,6 +26,11 @@ module Savon
         self
       end
 
+      def never
+        httpi_mock.never
+        self
+      end
+
       # Sets up HTTPI to return a given +response+.
       def returns(response = nil)
         http = { :code => 200, :headers => {}, :body => "" }
