@@ -21,12 +21,21 @@ describe Savon::Spec::Mock do
       client.request :get_user
     end
 
+    it "should fail when only parts of the SOAP action matched" do
+      expect { client.request :get_user_by_id }.to raise_error(
+        Mocha::ExpectationError,
+        /expected exactly once, not yet invoked: HTTPI.post/
+      )
+
+      teardown_mocks_for_rspec
+    end
+
     it "should fail when no SOAP call was made" do
       expect { verify_mocks_for_rspec }.to raise_error(
         Mocha::ExpectationError,
         /expected exactly once, not yet invoked: HTTPI.post/
       )
-      
+
       teardown_mocks_for_rspec
     end
   end
@@ -42,7 +51,7 @@ describe Savon::Spec::Mock do
 
     it "should fail when the SOAP body was not send" do
       client.request(:get_user)
-      
+
       expect { verify_mocks_for_rspec }.to raise_error(
         Mocha::ExpectationError,
         /expected exactly once, not yet invoked: #<AnyInstance:Savon::SOAP::XML>.body=\(:id => 1\)/
@@ -129,9 +138,9 @@ describe Savon::Spec::Mock do
       around do |example|
         Savon::Spec::Fixture.path = "spec/fixtures"
         savon.expects(:get_user).returns(:success)
-        
+
         example.run
-        
+
         Savon::Spec::Fixture.path = nil  # reset to default
       end
 
@@ -179,10 +188,10 @@ describe Savon::Spec::Mock do
 
     it "should just act like there was a SOAP fault if raising errors was disabled" do
       Savon.raise_errors = false
-      
+
       response = client.request :get_user
       response.should be_a_soap_fault
-      
+
       Savon.raise_errors = true  # reset to default
     end
   end

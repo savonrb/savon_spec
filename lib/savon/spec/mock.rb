@@ -68,7 +68,7 @@ module Savon
       attr_reader :soap_action
 
       def new_httpi_mock
-        HTTPI.send(mock_method, :post).with { |http| http.body.include? soap_action }
+        HTTPI.send(mock_method, :post).with { |http| http.body =~ /<\/(.+:)?#{soap_action}>/ }
       end
 
       attr_accessor :httpi_mock
