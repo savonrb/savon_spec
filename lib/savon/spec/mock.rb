@@ -22,7 +22,10 @@ module Savon
 
       # Expects a given SOAP body Hash to be used.
       def with(soap_body)
-        Savon::SOAP::XML.any_instance.expects(:body=).with(soap_body) if mock_method == :expects
+        if mock_method == :expects
+          Savon::SOAP::XML.any_instance.expects(:body=).with(nil) # savon 0.9.6+ sets body in request constructor
+          Savon::SOAP::XML.any_instance.expects(:body=).with(soap_body)
+        end
         self
       end
 
