@@ -4,7 +4,7 @@ describe Savon::Spec::Macros do
   include Savon::Spec::Macros
 
   describe "#savon" do
-    it "should return a Savon::Spec::Mock instance" do
+    it "returns a Savon::Spec::Mock instance" do
       savon.should be_a(Savon::Spec::Mock)
     end
   end

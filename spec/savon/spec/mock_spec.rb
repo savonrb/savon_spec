@@ -7,7 +7,7 @@ end
 describe Savon::Spec::Mock do
   include Savon::Spec::Macros
 
-  let :client do
+  let(:client) do
     Savon::Client.new do
       wsdl.endpoint = "http://example.com"
       wsdl.namespace = "http://users.example.com"
@@ -15,125 +15,146 @@ describe Savon::Spec::Mock do
   end
 
   describe "#expects" do
-    before { savon.expects(:get_user).returns }
 
-    it "should set up HTTPI to mock POST requests for a given SOAP action" do
-      client.request :get_user
+    before do
+      savon.expects(:get_user)
     end
 
-    it "should fail when only parts of the SOAP action matched" do
-      expect { client.request :get_user_by_id }.to raise_error(
-        Mocha::ExpectationError,
-        /expected exactly once, not yet invoked: HTTPI.post/
-      )
-
-      teardown_mocks_for_rspec
-    end
-
-    it "should fail when no SOAP call was made" do
-      expect { verify_mocks_for_rspec }.to raise_error(
-        Mocha::ExpectationError,
-        /expected exactly once, not yet invoked: HTTPI.post/
-      )
-
-      teardown_mocks_for_rspec
-    end
-  end
-
-  describe "#expects and #with" do
-    before { savon.expects(:get_user).with(:id => 1).returns }
-
-    it "should expect Savon to send a given SOAP body" do
-      client.request :get_user do
-        soap.body = { :id => 1 }
-      end
-    end
-
-    it "should fail when the SOAP body was not send" do
+    it "does not execute a POST request (verified via WebMock)" do
       client.request(:get_user)
-
-      expect { verify_mocks_for_rspec }.to raise_error(
-        Mocha::ExpectationError,
-        /expected exactly once, not yet invoked: #<AnyInstance:Savon::SOAP::XML>.body=\(:id => 1\)/
-      )
-
-      teardown_mocks_for_rspec
     end
+
+    it "fails when a different SOAP action was called" do
+      expect { client.request(:get_user_by_id) }.to raise_error(
+        Savon::Spec::ExpectationError,
+        "expected :getUser to be called, got: :getUserById"
+      )
+    end
+
   end
 
-  describe "#expects and #never" do
-    before { savon.expects(:noop).never }
+  describe "#with" do
 
-    it "should not expect Savon to send a given SOAP body" do
+    context "a Hash" do
+
+      before do
+        savon.expects(:get_user).with(:id => 1)
+      end
+
+      it "expects Savon to send a specific SOAP body" do
+        client.request :get_user, :body => { :id => 1 }
+      end
+
+      it "fails when the SOAP body was not set" do
+        expect { client.request(:get_user) }.to raise_error(
+          Savon::Spec::ExpectationError,
+          "expected {:id=>1} to be sent, got: nil"
+        )
+      end
+
+      it "fails when the SOAP body did not match the expected value" do
+        expect { client.request :get_user, :body => { :id => 2 } }.to raise_error(
+          Savon::Spec::ExpectationError,
+          "expected {:id=>1} to be sent, got: {:id=>2}"
+        )
+      end
+
+    end
+
+    context "a block" do
+
+      before do
+        savon.expects(:get_user).with do |request|
+          request.soap.body.should include(:id)
+        end
+      end
+
+      it "works with a custom expectation" do
+        client.request :get_user, :body => { :id => 1 }
+      end
+
+      it "fails when the expectation was not met" do
+        begin
+          client.request :get_user, :body => { :name => "Dr. Who" }
+        rescue Spec::Expectations::ExpectationNotMetError => e
+          e.message.should =~ /expected {:name=>"Dr. Who"} to include :id/
+        end
+      end
+
+    end
+
+  end
+
+  describe "#never" do
+
+    before do
+      savon.expects(:noop).never
+    end
+
+    it "expects Savon to never call a specific SOAP action" do
       expect { client.request(:noop) }.to raise_error(
-        Mocha::ExpectationError,
-        /expected never, invoked once: HTTPI.post()/
+        Savon::Spec::ExpectationError,
+        "expected :noop never to be called, but it was!"
       )
-
-      teardown_mocks_for_rspec
-    end
-  end
-
-  describe "#stubs" do
-    before { savon.stubs(:get_user).returns }
-
-    it "should set up HTTPI to stub POST requests for a given SOAP action" do
-      client.request :get_user
     end
 
-    it "should not complain about requests not being executed" do
-      expect { verify_mocks_for_rspec }.to_not raise_error(Mocha::ExpectationError)
-      teardown_mocks_for_rspec
-    end
-  end
-
-  describe "#stubs and #with" do
-    before { savon.stubs(:get_user).with(:id => 1).returns }
-
-    it "should not expect Savon to send a given SOAP body" do
-      client.request :get_user
-    end
   end
 
   describe "#returns" do
+
     context "without arguments" do
-      let(:response) { client.request :get_user }
 
-      before { savon.expects(:get_user).returns }
+      let(:response) do
+        client.request(:get_user)
+      end
 
-      it "should return a response code of 200" do
+      before do
+        savon.expects(:get_user)
+      end
+
+      it "returns a response code of 200" do
         response.http.code.should == 200
       end
 
-      it "should not return any response headers" do
+      it "does not return any response headers" do
         response.http.headers.should == {}
       end
 
-      it "should return an empty response body" do
+      it "returns an empty response body" do
         response.http.body.should == ""
       end
+
     end
 
     context "with a String" do
-      let(:response) { client.request :get_user }
 
-      before { savon.expects(:get_user).returns("<soap>response</soap>") }
+      let(:response) do
+        client.request(:get_user)
+      end
 
-      it "should return a response code of 200" do
+      before do
+        savon.expects(:get_user).returns("<soap>response</soap>")
+      end
+
+      it "returns a response code of 200" do
         response.http.code.should == 200
       end
 
-      it "should not return any response headers" do
+      it "does not return any response headers" do
         response.http.headers.should == {}
       end
 
-      it "should return the given response body" do
+      it "returns the given response body" do
         response.http.body.should == "<soap>response</soap>"
       end
+
     end
 
     context "with a Symbol" do
-      let(:response) { client.request :get_user }
+
+      let(:response) do
+        client.request(:get_user)
+      end
 
       around do |example|
         Savon::Spec::Fixture.path = "spec/fixtures"
@@ -144,56 +165,48 @@ describe Savon::Spec::Mock do
         Savon::Spec::Fixture.path = nil  # reset to default
       end
 
-      it "should return a response code of 200" do
+      it "returns a response code of 200" do
         response.http.code.should == 200
       end
 
-      it "should not return any response headers" do
+      it "does not return any response headers" do
         response.http.headers.should == {}
       end
 
-      it "should return the :success fixture for the :get_user action" do
+      it "returns the :success fixture for the :get_user action" do
         response.http.body.should == File.read("spec/fixtures/get_user/success.xml")
       end
+
     end
 
     context "with a Hash" do
-      let(:response) { client.request :get_user }
+
+      let(:response) do
+        client.request(:get_user)
+      end
+
+      let(:http) do
+        { :code => 201, :headers => { "Set-Cookie" => "ID=1; Max-Age=3600;" }, :body => "<with>cookie</with>" }
+      end
 
       before do
-        @hash = { :code => 201, :headers => { "Set-Cookie" => "ID=1; Max-Age=3600;" }, :body => "<with>cookie</with>" }
-        savon.expects(:get_user).returns(@hash)
+        savon.expects(:get_user).returns(http)
       end
 
-      it "should return the given response code" do
-        response.http.code.should == @hash[:code]
+      it "returns the given response code" do
+        response.http.code.should == http[:code]
       end
 
-      it "should return the given response headers" do
-        response.http.headers.should == @hash[:headers]
+      it "returns the given response headers" do
+        response.http.headers.should == http[:headers]
       end
 
-      it "should return the given response body" do
-        response.http.body.should == @hash[:body]
+      it "returns the given response body" do
+        response.http.body.should == http[:body]
       end
-    end
-  end
 
-  describe "#with_soap_fault" do
-    before { savon.expects(:get_user).raises_soap_fault.returns }
-
-    it "should raise a SOAP fault" do
-      expect { client.request :get_user }.to raise_error(Savon::SOAP::Fault)
     end
 
-    it "should just act like there was a SOAP fault if raising errors was disabled" do
-      Savon.raise_errors = false
-
-      response = client.request :get_user
-      response.should be_a_soap_fault
-
-      Savon.raise_errors = true  # reset to default
-    end
   end
 
 end

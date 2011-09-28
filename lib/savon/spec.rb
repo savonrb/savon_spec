@@ -1,10 +1,16 @@
 require "savon"
 require "rspec"
-require "mocha"
 
-RSpec.configure do |config|
-  config.mock_with :mocha
+module Savon
+  module Spec
+
+    autoload :Macros,  "savon/spec/macros"
+    autoload :Mock,    "savon/spec/mock"
+    autoload :Fixture, "savon/spec/fixture"
+
+  end
 end
 
-require "savon/spec/version"
-require "savon/spec/macros"
+RSpec.configure do |config|
+  config.after { Savon.hooks.reject!(Savon::Spec::Mock::HOOKS) }
+end

@@ -2,8 +2,8 @@
    <soap:Body>
       <ns2:getUserResponse xmlns:ns2="http://users.example.com/">
          <return>
-           <name>Kent</name>
-           <email>kent@example.com</email>
+           <name>Dr. Who</name>
+           <email>dr_who@example.com</email>
          </return>
       </ns2:getUserResponse>
    </soap:Body>
