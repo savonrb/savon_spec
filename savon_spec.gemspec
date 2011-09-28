@@ -18,7 +18,6 @@ Gem::Specification.new do |s|
 
   s.add_development_dependency "httpclient", "~> 2.1.5"
   s.add_development_dependency "webmock",    "~> 1.4.0"
-  s.add_development_dependency "mocha",      "~> 0.10.0"
 
   s.add_development_dependency "autotest"
   s.add_development_dependency "ZenTest", "4.5.0"

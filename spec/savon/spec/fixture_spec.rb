@@ -16,8 +16,11 @@ describe Savon::Spec::Fixture do
     end
 
     it "defaults to spec/fixtures when used in a Rails app" do
-      Rails = Class.new
-      Rails.expects(:root).returns(Pathname.new("/Users/dr_who/another_app"))
+      Rails = Class.new do
+        def self.root
+          Pathname.new("/Users/dr_who/another_app")
+        end
+      end
 
       Savon::Spec::Fixture.path.should == "/Users/dr_who/another_app/spec/fixtures"
 
