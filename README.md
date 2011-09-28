@@ -1,115 +1,150 @@
-Savon::Spec
+Savon::Spec [![Build Status](https://secure.travis-ci.org/rubiii/savon_spec.png)](http://travis-ci.org/rubiii/savon_spec)
 ===========
 
-Savon testing library
+Savon testing library.
+
 
 Installation
 ------------
 
 Savon::Spec is available through [Rubygems](http://rubygems.org/gems/savon_spec) and can be installed via:
 
-    $ gem install savon_spec
+```
+$ gem install savon_spec
+```
 
-Dependencies
-------------
 
-Currently, the dependencies are very strict. Savon::Spec is meant to be used with:
+Expects
+-------
 
-* [Savon](http://rubygems.org/gems/savon) ~> 0.8.0.beta.3
-* [RSpec](http://rubygems.org/gems/rspec) ~> 2.0.0
-* [Mocha](http://rubygems.org/gems/mocha) ~> 0.9.8
+Include the `Savon::Spec::Macros` module into your specs:
 
-Note to self: the required versions for RSpec and Mocha could probably be lower.
+``` ruby
+RSpec.configure do |config|
+  config.include Savon::Spec::Macros
+end
+```
 
-Getting started
----------------
+By including the module you get a `savon` method to mock SOAP requests. Here's a very simple example:
 
-### Macros
+```  ruby
+let(:client) do
+  Savon::Client.new do
+    wsdl.endpoint = "http://example.com"
+    wsdl.namespace = "http://users.example.com"
+  end
+end
 
-Include the `Savon::Spec::Macros` module:
+before do
+  savon.expects(:get_user)
+end
 
-    RSpec.configure do |config|
-      config.include Savon::Spec::Macros
-    end
+it "mocks a SOAP request" do
+  client.request(:get_user)
+end
+```
 
-### Mock
+This sets up an expectation for Savon to call the `:get_user` action and the specs should pass without errors.
+Savon::Spec does not execute a POST request to your service, but uses [Savon hooks](http://savonrb.com/#hook_into_the_system) to return a fake response:
 
-By including the macros, you have access to the `savon` method in your specs. It returns a `Savon::Spec::Mock` instance to set up your expectations. It's based on Mocha and comes with similiar methods:
+``` ruby
+{ :code => 200, :headers => {}, :body => "" }
+```
 
-    #expects(soap_action)       # mocks SOAP request to a given SOAP action
-    #stubs(soap_action)         # stubs SOAP requests to a given SOAP action
-    #with(soap_body)            # expects Savon to send a given SOAP body
-    #raises_soap_fault          # raises or acts like there was a SOAP fault
-    #returns(response)          # returns the given response
+To further isolate your specs, I'd suggest setting up [FakeWeb](http://rubygems.org/gems/fakeweb) to disallow any HTTP requests.  
 
-### Fixtures
 
-Savon::Spec works best with SOAP response fixtures (simple XML files) and a conventional folder structure:
+With
+----
 
-    ~ spec
-      ~ fixtures
-        ~ get_user
-          - single_user.xml
-          - multiple_users.xml
-      + models
-      + controllers
-      + helpers
-      + views
+Mocking SOAP requests is fine, but what you really need to do is verify whether you're sending the right
+parameters to your service.
 
-When used inside a Rails 3 application, Savon::Spec uses the command `Rails.root.join("spec", "fixtures")` to locate your fixture directory. In any other case, you have to manually set the fixture path via:
+```  ruby
+before do
+  savon.expects(:get_user).with(:id => 1)
+end
 
-    Savon::Spec::Fixture.path = File.expand_path("../fixtures", __FILE__)
+it "mocks a SOAP request" do
+  client.request(:get_user) do
+    soap.body = { :id => 1 }
+  end
+end
+```
 
-The directories inside the fixture directory should map to SOAP actions and the XML fixtures inside those directories should describe the SOAP response. Please take a look at the following examples to better understand this convention.
+This checks whether Savon uses the SOAP body Hash you expected and raises a `Savon::Spec::ExpectationError` if it doesn't.
 
-An example
-----------
+```
+Failure/Error: client.request :get_user, :body => { :name => "Dr. Who" }
+Savon::Spec::ExpectationError:
+  expected { :id => 1 } to be sent, got: { :name => "Dr. Who" }
+```
 
-user.rb
+You can also pass a block to the `#with` method and receive the `Savon::SOAP::Request` before the POST request is executed.  
+Here's an example of a custom expectation:
 
-    class User
+``` ruby
+savon.expects(:get_user).with do |request|
+  request.soap.body.should include(:id)
+end
+```
 
-      def self.all
-        response = client.request :get_all_users
-        response.to_hash.map { |user_hash| new user_hash }
-      end
 
-      def self.find(user_id)
-        response = client.request :get_user do
-          soap.body = { :id => user_id }
-        end
-        
-        new response.to_hash
-      end
+Returns
+-------
 
-    end
+Instead of the default fake response, you can return a custom HTTP response by passing a Hash to the `#returns` method.  
+If you leave out any of these values, Savon::Spec will add the default values for you.
 
-user_spec.rb
+``` ruby
+savon.expects(:get_user).returns(:code => 500, :headers => {}, :body => "save the unicorns")
+```
 
-    describe User do
+Savon::Spec also works with SOAP response fixtures (simple XML files) and a conventional folder structure:
 
-      describe ".all" do
-        before do
-          savon.expects(:get_all_users).returns(:multiple_users)
-        end
+```
+~ spec
+  ~ fixtures
+    ~ get_user
+      - single_user.xml
+      - multiple_users.xml
+  + models
+  + controllers
+  + helpers
+  + views
+```
 
-        it "should return an Array of Users" do
-          User.all.each { |user| user.should be_a(User) }
-        end
+When used inside a Rails 3 application, Savon::Spec uses `Rails.root.join("spec", "fixtures")` to locate your fixture directory.  
+In any other case, you have to manually set the fixture path via:
 
-        it "should return exactly 7 Users" do
-          User.all.should have(7).items
-        end
-      end
+``` ruby
+Savon::Spec::Fixture.path = File.expand_path("../fixtures", __FILE__)
+```
 
-      describe ".find" do
-        before do
-          savon.expects(:get_user).with(:id => 1).returns(:single_user)
-        end
+Directory names inside the fixtures directory map to SOAP actions and contain actual SOAP responses from your service(s).  
+You can use one of those fixtures for the HTTP response body like in the following example:
 
-        it "should return a User for a given :id" do
-          User.find(1).should be_a(User)
-        end
-      end
+``` ruby
+savon.expects(:get_user).with(:id => 1).returns(:single_user)
+```
 
-    end
+As you can see, Savon::Spec uses the name of your SOAP action and the Symbol passed to the `#returns` method to navigate inside  
+your fixtures directory and load the requested XML files.
+
+
+Never
+-----
+
+Savon::Spec can also verify that a certain SOAP request was not executed:
+
+``` ruby
+savon.expects(:get_user).never
+```
+
+
+RSpec
+-----
+
+This library is optimized to work with RSpec, but it could be tweaked to work with any other testing library.  
+Savon::Spec installs an after filter to clear out its Savon hooks after each example.
+
