@@ -126,30 +126,6 @@ describe Savon::Spec::Mock do
 
     end
 
-    context "with a String" do
-
-      let(:response) do
-        client.request(:get_user)
-      end
-
-      before do
-        savon.expects(:get_user).returns("<soap>response</soap>")
-      end
-
-      it "returns a response code of 200" do
-        response.http.code.should == 200
-      end
-
-      it "does not return any response headers" do
-        response.http.headers.should == {}
-      end
-
-      it "returns the given response body" do
-        response.http.body.should == "<soap>response</soap>"
-      end
-
-    end
-
     context "with a Symbol" do
 
       let(:response) do

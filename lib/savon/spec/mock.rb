@@ -45,9 +45,8 @@ module Savon
       # Expects a given +response+ to be returned.
       def returns(response = nil)
         http = case response
-          when Symbol   then { :body => Fixture[action, response] }
-          when String   then { :body => response }
-          when Hash     then response
+          when Symbol then { :body => Fixture[action, response] }
+          when Hash   then response
         end
 
         Savon.hooks.define(:spec_response, :soap_request) do |request|
