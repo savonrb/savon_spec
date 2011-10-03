@@ -33,6 +33,19 @@ describe Savon::Spec::Mock do
 
   end
 
+  describe "#expects" do
+
+    before do
+      savon.expects("CreateTLAThing")
+    end
+
+    it "does not alter the case of strings" do
+      client.request("CreateTLAThing")
+    end
+
+  end
+
+
   describe "#with" do
 
     context "a Hash" do
