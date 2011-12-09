@@ -9,7 +9,7 @@ module Savon
     class Mock
 
       # Hooks registered by Savon::Spec.
-      HOOKS = [:spec_action, :spec_body, :spec_response]
+      HOOKS = [:spec_action, :spec_body, :spec_response, :spec_never]
 
       # Expects that a given +action+ should be called.
       def expects(expected)
