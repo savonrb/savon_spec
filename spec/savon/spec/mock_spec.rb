@@ -27,6 +27,12 @@ describe Savon::Spec::Mock do
       )
     end
 
+    it "should not lower_camelcase actions that are passed as string" do
+      expect { client.request("GetUser") }.to raise_error(
+        Savon::Spec::ExpectationError,
+        "expected :getUser to be called, got: :GetUser"
+      )
+    end
   end
 
   describe "#with" do
