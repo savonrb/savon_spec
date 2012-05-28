@@ -73,7 +73,7 @@ module Savon
     private
 
       def action=(action)
-        @action = action.to_s.lower_camelcase.to_sym
+        @action = action.is_a?(String) ? action.to_sym : action.to_s.lower_camelcase.to_sym
       end
 
       attr_reader :action
