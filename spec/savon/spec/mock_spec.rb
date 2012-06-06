@@ -77,7 +77,7 @@ describe Savon::Spec::Mock do
         begin
           client.request :get_user, :body => { :name => "Dr. Who" }
         rescue Spec::Expectations::ExpectationNotMetError => e
-          e.message.should =~ /expected {:name=>"Dr. Who"} to include :id/
+          e.message.should =~ /expected \{:name=>"Dr. Who"\} to include :id/
         end
       end
 
