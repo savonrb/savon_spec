@@ -1,9 +1,5 @@
 require "spec_helper"
 
-Savon.configure do |config|
-  config.log = false
-end
-
 describe Savon::Spec::Mock do
   include Savon::Spec::Macros
 
