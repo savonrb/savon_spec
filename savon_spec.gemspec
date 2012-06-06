@@ -20,6 +20,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency "webmock",    "~> 1.4.0"
 
   s.add_development_dependency "autotest"
+  s.add_development_dependency "rake"
   s.add_development_dependency "ZenTest", "4.5.0"
 
   s.files = `git ls-files`.split("\n")
