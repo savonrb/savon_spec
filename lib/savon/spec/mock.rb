@@ -15,7 +15,7 @@ module Savon
       def expects(expected)
         self.action = expected
 
-        Savon.config.hooks.define(:spec_action, :soap_request) do |request|
+        Savon.config.hooks.define(:spec_action, :soap_request) do |_, request|
           actual = request.soap.input[1]
           raise ExpectationError, "expected #{action.inspect} to be called, got: #{actual.inspect}" unless actual == action
 
@@ -28,7 +28,7 @@ module Savon
       # Accepts a SOAP +body+ to check if it was set. Also accepts a +block+
       # which receives the <tt>Savon::SOAP::Request</tt> to set up custom expectations.
       def with(body = nil, &block)
-        Savon.config.hooks.define(:spec_body, :soap_request) do |request|
+        Savon.config.hooks.define(:spec_body, :soap_request) do |_, request|
           if block
             block.call(request)
           else
@@ -49,7 +49,7 @@ module Savon
           when Hash   then response
         end
 
-        Savon.config.hooks.define(:spec_response, :soap_request) do |request|
+        Savon.config.hooks.define(:spec_response, :soap_request) do |_, request|
           respond_with(http)
         end
 
@@ -58,9 +58,9 @@ module Savon
 
       # Expects that the +action+ doesn't get called.
       def never
-        Savon.config.hooks.reject!(:spec_action)
+        Savon.config.hooks.reject(:spec_action)
 
-        Savon.config.hooks.define(:spec_never, :soap_request) do |request|
+        Savon.config.hooks.define(:spec_never, :soap_request) do |_, request|
           actual = request.soap.input[1]
           raise ExpectationError, "expected #{action.inspect} never to be called, but it was!" if actual == action
 

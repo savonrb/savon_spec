@@ -12,5 +12,5 @@ module Savon
 end
 
 RSpec.configure do |config|
-  config.after { Savon.config.hooks.reject!(Savon::Spec::Mock::HOOKS) }
+  config.after { Savon.config.hooks.reject(Savon::Spec::Mock::HOOKS) }
 end
