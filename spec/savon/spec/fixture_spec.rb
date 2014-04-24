@@ -6,7 +6,7 @@ describe Savon::Spec::Fixture do
 
     it "returns a specified path" do
       Savon::Spec::Fixture.path = "/Users/dr_who/some_app/spec/fixtures"
-      Savon::Spec::Fixture.path.should == "/Users/dr_who/some_app/spec/fixtures"
+      expect(Savon::Spec::Fixture.path).to eq("/Users/dr_who/some_app/spec/fixtures")
 
       Savon::Spec::Fixture.path = nil  # reset to default
     end
@@ -22,7 +22,7 @@ describe Savon::Spec::Fixture do
         end
       end
 
-      Savon::Spec::Fixture.path.should == "/Users/dr_who/another_app/spec/fixtures"
+      expect(Savon::Spec::Fixture.path).to eq("/Users/dr_who/another_app/spec/fixtures")
 
       Object.send(:remove_const, "Rails")
     end
@@ -39,12 +39,11 @@ describe Savon::Spec::Fixture do
 
     it "returns a fixture for the given arguments" do
       fixture = Savon::Spec::Fixture.load :get_user, :success
-      fixture.should == File.read("spec/fixtures/get_user/success.xml")
+      expect(fixture).to eq(File.read("spec/fixtures/get_user/success.xml"))
     end
 
     it "memoizes the fixtures" do
-      Savon::Spec::Fixture.load(:get_user, :success).
-        should equal(Savon::Spec::Fixture.load(:get_user, :success))
+      expect(Savon::Spec::Fixture.load(:get_user, :success)).to be(Savon::Spec::Fixture.load(:get_user, :success))
     end
 
   end

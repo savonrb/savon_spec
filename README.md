@@ -85,7 +85,7 @@ Here's an example of a custom expectation:
 
 ``` ruby
 savon.expects(:get_user).with do |request|
-  request.soap.body.should include(:id)
+  expect(request.soap.body).to include(:id)
 end
 ```
 
