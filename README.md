@@ -1,7 +1,12 @@
 Savon::Spec [![Build Status](https://secure.travis-ci.org/rubiii/savon_spec.png)](http://travis-ci.org/rubiii/savon_spec)
 ===========
 
-Savon testing library.
+Savon v1 Rspec Helpers
+
+Deprecated
+==========
+
+Starting in Savon v2, [spec helpers are included in Savon itself](http://savonrb.com/version2/testing.html). This gem is only helpful if you're using Savon v1. It is highly recommended to use Savon v2 with the `Savon::SpecHelper` module for new projects.
 
 
 Installation
