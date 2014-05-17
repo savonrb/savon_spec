@@ -185,6 +185,62 @@ describe Savon::Spec::Mock do
 
     end
 
+    context "with a HTTPI::Response" do
+
+      let(:response) do
+        client.request(:get_user)
+      end
+
+      let(:http_response) do
+        HTTPI::Response.new(201, { "Set-Cookie" => "ID=1; Max-Age=3600;" }, "<with>cookie</with>" )
+      end
+
+      before do
+        savon.expects(:get_user).returns(http_response)
+      end
+
+      it "returns the given response code" do
+        response.http.code.should == http_response.code
+      end
+
+      it "returns the given response headers" do
+        response.http.headers.should == http_response.headers
+      end
+
+      it "returns the given response body" do
+        response.http.body.should == http_response.body
+      end
+
+    end
+
+    context "with a Savon::SOAP::Response" do
+
+      let(:response) do
+        client.request(:get_user)
+      end
+
+      let(:savon_response) do
+        Savon::SOAP::Response.new(double(:config, :raise_errors => false), HTTPI::Response.new(201, { "Set-Cookie" => "ID=1; Max-Age=3600;" }, "<with>cookie</with>" ))
+      end
+
+      before do
+        savon.expects(:get_user).returns(savon_response)
+      end
+
+      it "returns the given response code" do
+        response.http.code.should == savon_response.http.code
+      end
+
+      it "returns the given response headers" do
+        response.http.headers.should == savon_response.http.headers
+      end
+
+      it "returns the given response body" do
+        response.http.body.should == savon_response.http.body
+      end
+
+    end
+
   end
 
 end

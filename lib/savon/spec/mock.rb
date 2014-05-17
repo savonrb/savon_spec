@@ -46,7 +46,7 @@ module Savon
       def returns(response = nil)
         http = case response
           when Symbol then { :body => Fixture[action, response] }
-          when Hash   then response
+          else response
         end
 
         Savon.config.hooks.define(:spec_response, :soap_request) do |_, request|
@@ -80,9 +80,15 @@ module Savon
 
       def respond_with(http = {})
         defaults = { :code => 200, :headers => {}, :body => "" }
-        http = defaults.merge(http)
-
-        HTTPI::Response.new(http[:code], http[:headers], http[:body])
+        case http
+        when Hash
+          http = defaults.merge(http)
+          HTTPI::Response.new(http[:code], http[:headers], http[:body])
+        when HTTPI::Response
+          http
+        when Savon::SOAP::Response
+          http.http
+        end
       end
 
       # Extracted from CoreExt of Savon 0.9.9
