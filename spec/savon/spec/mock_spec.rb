@@ -67,7 +67,7 @@ describe Savon::Spec::Mock do
 
       before do
         savon.expects(:get_user).with do |request|
-          request.soap.body.should include(:id)
+          expect(request.soap.body).to include(:id)
         end
       end
 
@@ -78,8 +78,8 @@ describe Savon::Spec::Mock do
       it "fails when the expectation was not met" do
         begin
           client.request :get_user, :body => { :name => "Dr. Who" }
-        rescue Spec::Expectations::ExpectationNotMetError => e
-          e.message.should =~ /expected \{:name=>"Dr. Who"\} to include :id/
+        rescue RSpec::Expectations::ExpectationNotMetError => e
+          expect(e.message).to match(/expected \{\:name(\s?)\=\>(\s?)"Dr. Who"\} to include \:id/)
         end
       end
 
@@ -115,15 +115,15 @@ describe Savon::Spec::Mock do
       end
 
       it "returns a response code of 200" do
-        response.http.code.should == 200
+        expect(response.http.code).to eq(200)
       end
 
       it "does not return any response headers" do
-        response.http.headers.should == {}
+        expect(response.http.headers).to eq({})
       end
 
       it "returns an empty response body" do
-        response.http.body.should == ""
+        expect(response.http.body).to eq("")
       end
 
     end
@@ -144,15 +144,15 @@ describe Savon::Spec::Mock do
       end
 
       it "returns a response code of 200" do
-        response.http.code.should == 200
+        expect(response.http.code).to eq(200)
       end
 
       it "does not return any response headers" do
-        response.http.headers.should == {}
+        expect(response.http.headers).to eq({})
       end
 
       it "returns the :success fixture for the :get_user action" do
-        response.http.body.should == File.read("spec/fixtures/get_user/success.xml")
+        expect(response.http.body).to eq(File.read("spec/fixtures/get_user/success.xml"))
       end
 
     end
@@ -172,15 +172,15 @@ describe Savon::Spec::Mock do
       end
 
       it "returns the given response code" do
-        response.http.code.should == http[:code]
+        expect(response.http.code).to eq(http[:code])
       end
 
       it "returns the given response headers" do
-        response.http.headers.should == http[:headers]
+        expect(response.http.headers).to eq(http[:headers])
       end
 
       it "returns the given response body" do
-        response.http.body.should == http[:body]
+        expect(response.http.body).to eq(http[:body])
       end
 
     end

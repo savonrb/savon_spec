@@ -5,7 +5,7 @@ describe Savon::Spec::Macros do
 
   describe "#savon" do
     it "returns a Savon::Spec::Mock instance" do
-      savon.should be_a(Savon::Spec::Mock)
+      expect(savon).to be_kind_of(Savon::Spec::Mock)
     end
   end
 
